@@ -9,7 +9,7 @@ class InterlocksController:
     _lampInterlock = False
     _serverInterlock = False
     _playbackInterlock = False
-    _avInterlock = False
+    _avInterlock = True
     _lockout = False
     _projectorOnline = False
     _projectorPower = -1
@@ -53,6 +53,21 @@ class InterlocksController:
     def getAVInterlock(self): 
         return self._avInterlock
     
+    def getProjectorOnline(self): 
+        return self._projectorOnline
+    
+    def getProjectorPower(self): 
+        return self._projectorPower
+    
+    def getServerOnline(self): 
+        return self._serverOnline
+    
+    def getServerBooted(self): 
+        return self._serverBooted
+    
+    def getPlaybackState(self): 
+        return self._playbackState
+    
     def getControlsLockout(self): 
         return self._lockout
     
@@ -92,18 +107,24 @@ class InterlocksController:
                 self._projectorPower = self.projector.getPower()
                 self._serverOnline = self.dolby.isOnline()
                 self._serverBooted = self.dolby.getBooted()
+                print(" *************************************** ")
+                print("Projector online: " + str(self._projectorOnline))
+                print("Projector Power: " + str(self._projectorPower))
+                print("Server Booted: " + str(self._serverBooted))
+                print("Server Online: " + str(self._serverOnline))
 
                 # Playback interlock
                 if(self._serverBooted):
                     self._playbackState = self.dolby.getPlaybackState()
-                    if(self._playbackState == "play"):
+                    if(self._playbackState == "Play"):
                         self._playbackInterlock = True
                     else: 
                         self._playbackInterlock = False
                 else: 
                     self._playbackInterlock = False
                     self._playbackState = "offline"
-
+                print(self._playbackState)
+                print("Playback Interlock: " + str(self._playbackInterlock))
                 # Lamp & Server interlock
                 if(self._projectorOnline == False):
                     self._lampInterlock = False
@@ -111,7 +132,14 @@ class InterlocksController:
                 else: 
                     if(self._projectorPower == 1):
                         self._lampInterlock = True
-                    else: self._lampInterlock = False
+                    else:
+                        # Projector will immediately report the power level requested (3 or 0), but if a cooldown is active, we still need 
+                        # to keep the lamp interlock active
+                        cooldown = self.projector.getCooldown()
+                        if(cooldown != 0): 
+                            self._lampInterlock = True
+                        else: 
+                            self._lampInterlock = False
 
                     if(self._serverBooted):
                         self._serverInterlock = True
@@ -121,8 +149,8 @@ class InterlocksController:
                 if(tlampInterlock != self._lampInterlock or tserverInterlock != self._serverInterlock or tplaybackInterlock != self._playbackInterlock):
                     interlocks = self.getInterlocks()
                     msg = { "Number": 2002, "Message": "InterlockMessage", "msg": interlocks}
-                    MessageBroker.add_message(msg)
-                    MessageBroker.broadcast()
+                    self.MessageBroker.add_message(msg)
+                    self.MessageBroker.broadcast()
 
             except Exception as ex: 
                 print(ex)
@@ -135,24 +163,24 @@ class InterlocksDetail:
 
     def __getitem__(self, key):
         if key == "LampInterlock": 
-            return self.id._lampInterlock
+            return self.id.getLampInterlock()
         elif key == "PlaybackInterlock": 
-            return self.id._playbackInterlock
+            return self.id.getPlaybackInterlock()
         elif key == "ServerInterlock": 
-            return self.id._serverInterlock
+            return self.id.getServerInterlock()
         elif key == "AVInterlock": 
-            return self.id._avInterlock
+            return self.id.getAVInterlock()
         elif key == "ControlsLockout": 
-            return self.id._lockout
+            return self.id.getLockout()
         elif key == "ProjectorOnline": 
-            return self.id._projectorOnline
+            return self.id.getProjectorOnline()
         elif key == "ServerOnline": 
-            return self.id._serverOnline
+            return self.id.getServerOnline()
         elif key == "ServerBooted": 
-            return self.id._serverBooted
+            return self.id.getServerBooted()
         elif key == "PlaybackState": 
-            return self.id._playbackState
+            return self.id.getPlaybackState()
         elif key == "ProjectorPowerLevel": 
-            return str(self.id._projectorPower)
+            return str(self.id.getProjectorPower())
         else: 
             raise KeyError("{} not found".format(key))

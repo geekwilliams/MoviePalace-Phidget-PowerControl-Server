@@ -104,8 +104,7 @@ class Dolby(Device):
         
     
     def getPlaybackState(self):
-        if self.sessionID == None: 
-            self.login()
+        self.login()
 
         try:
             getSystemStatusRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.doremilabs.com/dc/dcp/json/v1_0\"><soapenv:Header/><soapenv:Body><v1:GetSystemOverview><sessionId>{}</sessionId></v1:GetSystemOverview></soapenv:Body></soapenv:Envelope>".format(self.sessionID)

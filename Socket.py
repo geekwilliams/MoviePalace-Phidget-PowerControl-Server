@@ -160,11 +160,16 @@ class SocketHelper:
                                     st +=(key + ":" + bool2string(i[key]) + ",")
                                 response = st.rstrip(",") + "\n"
 
-                            elif message == "devicesstatus": 
+                            elif message == "devicestatus": 
                                 i = self.interlocks.getDeviceStatus()
                                 st = ""
                                 for key in i: 
-                                    st +=(key + ":" + bool2string(i[key]) + ",")
+                                    if key == "PlaybackState": 
+                                        st +=(key + ":" + i[key]+ ",")
+                                    elif key == "ProjectorPowerLevel":
+                                        st +=(key + ":" + i[key] + ",")
+                                    else:
+                                        st +=(key + ":" + bool2string(i[key]) + ",")
                                 response = st.rstrip(",") + "\n"
                             
                             elif message == "startup": 

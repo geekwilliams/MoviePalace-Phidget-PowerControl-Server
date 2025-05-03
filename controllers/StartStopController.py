@@ -26,7 +26,7 @@ class StartStopController:
             self.projector = Projector()
             self.dolby = Dolby()
 
-## TODO: Create threads for start and stop processes
+## TODO: projector.standby() is being called even though PlaybackInterlock is true.  Figure out why
     def startThread(self, callback=None):
         self._running = True 
         self.Interlocks.setLockout(True)
@@ -73,9 +73,10 @@ class StartStopController:
         if pInterlock["PlaybackInterlock"] == True:
             self._running = False
             self.Interlocks.setLockout(False)
+            print("Playback interlock [ACTIVE]")
             if callback:
                 callback(-2)
-            # return -1
+            return -1
         else: 
             # can shut off everything except AV and exhaust/projector relays: 
             self.RelayController.setLights(0)
@@ -86,35 +87,64 @@ class StartStopController:
             # Assess power levels first
             pPower = self.projector.getPower() # int: 3 - Standby, 0 - Ready, 1 - Full Power (Lamp on)
             sPower = self.dolby.getBooted()    # true if on, false if inaccessible
-            if(pPower == 0 and sPower == True): 
-                # Projector is ready and server is on.  Deal with server first: 
-                self.dolby.shutdown()
-                # wait 3 min
-                sleep(180)
-                self.projector.standby()
-            elif(pPower == 1 and sPower == True): 
+
+            # Deal with IMS 
+            if(sPower == True): 
                 self.dolby.shutdown()
                 sleep(180)
+
+            # Deal with projector
+            if(pPower == 1): 
+                timeout = 0
                 self.projector.standby()
-                # Monitor lamp cooldown and block until it's finished
-                for i in range(155): 
+                # loop until cooldown is finished.  Projector takes a second to register cooldown countdown
+                sleep(5)
+                while(True): 
                     cooldown = self.projector.getCooldown()
-                    if cooldown == 0: 
-                        break
-                    else: 
+                    print("Projector Cooldown: " + str(cooldown))
+                    if(cooldown != 0):
                         sleep(5)
-            elif(pPower == 0 and sPower == False): 
-                self.projector.standby()
-            elif(pPower == 1 and sPower == False): 
-                self.projector.standby()
-                for i in range(155): 
-                    cooldown = self.projector.getCooldown()
-                    if cooldown == 0: 
+                    elif(cooldown == 0): 
                         break
-                    else: 
+                    else:
+                        # catches any missed responses from projector
                         sleep(5)
+                        if(timeout == 15): 
+                            break
+                        timeout += 1 # make sure shutdown process doesn't hang
+                # cooldown is finished
+                sleep(60)
+
+            else:
+                # Someone else requested projector power 0 or 3. Need to check if there's a cooldown active
+                cd = self.projector.getCooldown()
+                if(cd != 0): 
+                    # loop and do nothing until cooldown is finished
+                    timeout = 0
+                    while(True): 
+                        cd = self.projector.getCooldown()
+                        if(cd == 0): 
+                            break
+                        else: 
+                            sleep(5)
+                            if(timeout == 15): 
+                                break
+                            timeout += 1
+                else: 
+                    # no cooldown, we can proceed normally
+                    sp = self.dolby.getBooted()
+                    if(sp == True): 
+                        self.dolby.shutdown()
+                        sleep(180)
+                        self.projector.standby()
+                        sleep(60)
+                    elif(sp == False): 
+                        # Server is off, we can proceed
+                        self.projector.standby()
+                        sleep(60)
+
             sleep(5)
-            # Confirm that projector is in expected state
+            # Confirm that stuff is in expected state
             p = self.projector.getPower()
             s = self.dolby.getBooted()
             if(p == 3 and s == False):

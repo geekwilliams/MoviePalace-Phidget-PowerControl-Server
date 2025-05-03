@@ -1,5 +1,6 @@
 from controllers.RelayControl import RelayControl
 from controllers.SwitchMonitor import SwitchMonitor
+from controllers.InterlockController import InterlocksController
 import WebSocket
 import Socket
 import threading
@@ -10,6 +11,7 @@ class PowerControlServer:
         self.Socket = Socket
         self.RelayControl = RelayControl()
         self.SwitchMonitor = SwitchMonitor()
+        self.Interlocks = InterlocksController()
 
     def run(self):
         print("Starting server...")
@@ -19,6 +21,7 @@ class PowerControlServer:
         ws_thread = threading.Thread(target=startwebsocketserver, args=[])
         soc_thread = threading.Thread(target=startsocketserver, args=[])
         switchmon_thread = threading.Thread(target=startSwitchMonitor)
+        interlocks_thread = threading.Thread(target=startInterlocks)
 
         print("Starting socket threads...")
         ws_thread.start()
@@ -26,6 +29,9 @@ class PowerControlServer:
 
         print("Starting switch monitor...")
         switchmon_thread.start()
+
+        print("Starting interlocks controller...")
+        interlocks_thread.start()
 
         print("Server Running")
         app_status = "Running"
@@ -49,4 +55,8 @@ def startsocketserver():
 
 def startwebsocketserver():
     WebSocket.run()
+
+def startInterlocks():
+    ic = InterlocksController()
+    ic.run()
 

@@ -5,7 +5,7 @@ class Device:
         self.host = host
         
     def isOnline(self):
-        r = os.system("ping -c 1 -w 1 {}".format(self.host))
+        r = os.system("ping -c 1 -w 1 {} > /dev/null 2>&1".format(self.host))
         if r == 0:
             return True
         else:
