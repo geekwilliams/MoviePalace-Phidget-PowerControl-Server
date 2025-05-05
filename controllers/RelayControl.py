@@ -234,9 +234,10 @@ class RelayControl:
         with open(filepath, "r+b") as f: 
             f.seek(index)
             current = f.read(1)
-            if current and current [0] != newState: 
+            print("Current Relay state: " + str(current) + ": New Relay State: " + str(bytes([newState])))
+            if current != bytes([newState]): 
                 f.seek(index)
-                f.write(bytes(newState))
+                f.write(bytes([newState]))
                 f.flush()
                 os.fsync(f.fileno())
     

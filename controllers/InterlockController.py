@@ -107,11 +107,11 @@ class InterlocksController:
                 self._projectorPower = self.projector.getPower()
                 self._serverOnline = self.dolby.isOnline()
                 self._serverBooted = self.dolby.getBooted()
-                print(" *************************************** ")
-                print("Projector online: " + str(self._projectorOnline))
-                print("Projector Power: " + str(self._projectorPower))
-                print("Server Booted: " + str(self._serverBooted))
-                print("Server Online: " + str(self._serverOnline))
+                # print(" *************************************** ")
+                # print("Projector online: " + str(self._projectorOnline))
+                # print("Projector Power: " + str(self._projectorPower))
+                # print("Server Booted: " + str(self._serverBooted))
+                # print("Server Online: " + str(self._serverOnline))
 
                 # Playback interlock
                 if(self._serverBooted):
@@ -123,8 +123,8 @@ class InterlocksController:
                 else: 
                     self._playbackInterlock = False
                     self._playbackState = "offline"
-                print(self._playbackState)
-                print("Playback Interlock: " + str(self._playbackInterlock))
+                # print(self._playbackState)
+                # print("Playback Interlock: " + str(self._playbackInterlock))
                 # Lamp & Server interlock
                 if(self._projectorOnline == False):
                     self._lampInterlock = False
