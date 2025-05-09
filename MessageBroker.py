@@ -87,7 +87,7 @@ class MessageBroker:
                     smj = json.dumps(message["msg"])
                     smf = { "Message": message["Message"], "Number": message["Number"], "Content": smj}
                     websocket.write_message(json.dumps(smf))  # write_message() implemented by WebSocket class, and part of set().  Intellisense fail
-                except ConnectionError:
+                except IOError:
                     self.websockets.remove(websocket)
 
     # Does not use message cue
@@ -96,7 +96,7 @@ class MessageBroker:
             for socket_client in list(self.sockets):
                 try: 
                     socket_client.sendall(message.encode('utf-8'))
-                except ConnectionError: 
+                except IOError: 
                     self.sockets.remove(socket_client)
 
 def bool2string(bool):

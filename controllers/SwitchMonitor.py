@@ -76,6 +76,9 @@ class SwitchMonitor:
             exSwitch = self.getExhaustFanSwitch()
             pSwitch = self.getProjectorSwitch()
 
+            # rest the thread so we don't overwhelm resources
+            time.sleep(0.25)
+            
             # Check for change in any switches and send message if there's a change
             if(lightSwitch != self.getLightsSwitch()):
                 self.sendMessage()
@@ -88,8 +91,7 @@ class SwitchMonitor:
             if(pSwitch != self.getProjectorSwitch()):
                 self.sendMessage()
                 
-            # rest the thread so we don't overwhelm resources
-            time.sleep(0.25)
+
 
     def cleanup(self):
         # Stop the main loop 
@@ -146,8 +148,8 @@ class SwitchMonitor:
     
     def sendMessage(self):
         # only the UI is updated with switch status
-        message = {"Message": "Trigger Update", "Number": 2006}
-        message["msg"] = { "LightsSwitch:" + self.SwitchDetail["Lights"] + ",AmpsSwitch:" + self.SwitchDetail["Amps"] + ",AVEquipmentSwitch:" + self.SwitchDetail["AVEquipment"] + ",ExhaustFanSwitch:" + self.SwitchDetail["ExhaustFan"] + ",ProjectorSwitch:" + self.SwitchDetail["Projector"] }
+        message = {"Message": "Switch Update", "Number": 2006}
+        message["msg"] = { "LightsSwitch": self.SwitchDetail["Lights"], "AmpsSwitch": self.SwitchDetail["Amps"], "AVEquipmentSwitch": self.SwitchDetail["AVEquipment"], "ExhaustFanSwitch": self.SwitchDetail["ExhaustFan"],  "ProjectorSwitch": self.SwitchDetail["Projector"] }
         self.MessageBroker.ws_post_message(message)
     
     def getSwitchStatus(self):

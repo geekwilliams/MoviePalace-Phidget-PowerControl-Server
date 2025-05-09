@@ -7,6 +7,7 @@ from MessageBroker import MessageBroker
 from controllers.RelayControl import RelayControl
 from controllers.SwitchMonitor import SwitchMonitor
 from controllers.StartStopController import StartStopController
+from controllers.InterlockController import InterlocksController
 import uuid
 
 connected_clients = set()
@@ -18,6 +19,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         self.relayDetail = RelayDetail()
         self.switchDetail = SwitchDetail()
         self.MessageBroker = MessageBroker()
+        self.interlocks = InterlocksController()
         self.id = str(uuid.uuid4())
         #print("Websocket MessageBroker id: {}".format(id(self.MessageBroker)))
 
@@ -49,6 +51,16 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
             elif data["Content"] == "get-switches":
                 self.write_message(json.dumps(self.getSwitchStatus()))
+            
+            elif data["Content"] == "get-interlocks": 
+                content = json.dumps(self.interlocks.getInterlocks())
+                msg = {"Message": "Reply Message", "Number": 2002, "Content": content}
+                self.write_message(json.dumps(msg))
+
+            elif data["Content"] == "get-device-status": 
+                content = json.dumps(self.interlocks.getDeviceStatus())
+                msg = {"Message": "Reply Message", "Number": 2004, "Content": content}
+                self.write_message(json.dumps(msg))
 
             elif data["Number"] == 2003:
                 # Parse request content

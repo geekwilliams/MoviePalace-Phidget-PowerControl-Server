@@ -115,8 +115,8 @@ class InterlocksController:
 
                 # Playback interlock
                 if(self._serverBooted):
-                    self._playbackState = self.dolby.getPlaybackState()
-                    if(self._playbackState == "Play"):
+                    self._playbackState = self.dolby.getPlaybackState().lower()
+                    if(self._playbackState == "play"):
                         self._playbackInterlock = True
                     else: 
                         self._playbackInterlock = False
